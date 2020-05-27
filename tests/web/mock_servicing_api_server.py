@@ -35,9 +35,10 @@ class MockHandler(SimpleHTTPRequestHandler):
 
     def _handle(self):
         try:
-            if self.is_valid_token() and self.is_valid_user_agent():
-                parsed_path = urlparse(self.path)
-
+            if self.path in {"/v1/public/token"}:
+                body = {"token": "not-a-valid-token"}
+                status = HTTPStatus.OK
+            elif self.is_valid_token() and self.is_valid_user_agent():
                 len_header = self.headers.get('Content-Length') or 0
                 content_len = int(len_header)
                 post_body = self.rfile.read(content_len)

@@ -32,3 +32,8 @@ class TestWebClient(unittest.TestCase):
         self.client.token = "status"
         resp = self.client.status()
         self.assertEqual(200, resp.status)
+
+    def test_login(self):
+        resp = self.client.login(email="support@loan-street.com", password="not-a-valid-password")
+        self.assertEqual(200, resp.status)
+        self.assertGreater(len(resp['token']), 0)
