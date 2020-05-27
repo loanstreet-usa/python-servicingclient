@@ -8,6 +8,13 @@ class ServicingClient(BaseClient):
     def status(self) -> ServicingResponse:
         return self.api_call(method="GET", path="/v1/public/status")
 
+    def login(self, *, email: str, password: str) -> ServicingResponse:
+        return self.api_call(
+            method="POST",
+            path="/v1/public/token",
+            data={"email": email, "password": password},
+        )
+
     def register_institution(self, *, institution: Institution) -> ServicingResponse:
         return self.api_call(
             method="POST", path="/v1/private/institution", data=institution.to_dict()
