@@ -1,0 +1,8 @@
+from enum import Enum
+
+
+class Compounding(Enum):
+    SIMPLE = "SIMPLE"
+    COMPOUNDED = "COMPOUNDED"
+    CONTINUOUS = "CONTINUOUS"
+    SIMPLE_THEN_COMPOUNDED = "SIMPLE_THEN_COMPOUNDED"
