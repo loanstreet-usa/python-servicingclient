@@ -1,9 +1,6 @@
 import unittest
-from servicing.web.classes.loan import Loan
+from servicing.web.classes.loan import Loan, FixedPayment, Periods
 from servicing.web.classes.money import Money
-from servicing.web.classes.fixed_payment import FixedPayment
-from servicing.web.classes.periods import Periods
-
 from servicing.web.classes.enums import BenchmarkName, Compounding, DayCount, Frequency
 
 

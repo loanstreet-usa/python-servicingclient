@@ -10,6 +10,10 @@ class Money(JsonObject):
         self.amount = amount
         self.currency = currency
 
-    @JsonValidator("money amount is required")
+    @JsonValidator("amount is required")
     def amount_present(self):
         return self.amount is not None
+
+    @JsonValidator("currency is required")
+    def currency_present(self):
+        return self.currency is not None

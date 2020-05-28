@@ -1,10 +1,68 @@
 from uuid import UUID
 from typing import Optional
 from . import JsonObject, JsonValidator
-from .enums import BenchmarkName, Compounding, DayCount
+from .enums import (
+    BenchmarkName,
+    Compounding,
+    DayCount,
+    FixedPaymentType,
+    Frequency,
+    StartType,
+)
 from .money import Money
-from .fixed_payment import FixedPayment
-from .periods import Periods
+
+
+class FixedPayment(JsonObject):
+    attributes = {"amount", "type"}
+
+    def __init__(
+        self,
+        *,
+        amount: Money,
+        type: Optional[FixedPaymentType] = FixedPaymentType.TOTAL
+    ):
+        self.amount = amount
+        self.type = type.value
+
+    @JsonValidator("amount is required")
+    def amount_present(self):
+        return self.amount is not None
+
+
+class Periods(JsonObject):
+    attributes = {
+        "count",
+        "frequency",
+        "day_of_month",
+        "count_deferred",
+        "count_interest_only",
+        "start_type",
+    }
+
+    def __init__(
+        self,
+        *,
+        count: int,
+        frequency: Frequency,
+        day_of_month: Optional[int] = None,
+        count_deferred: Optional[int] = 0,
+        count_interest_only: Optional[int] = 0,
+        start_type: Optional[StartType] = StartType.DISBURSEMENT_DATE
+    ):
+        self.count = count
+        self.frequency = frequency.value
+        self.day_of_month = day_of_month
+        self.count_deferred = count_deferred
+        self.count_interest_only = count_interest_only
+        self.start_type = start_type.value
+
+    @JsonValidator("count is required")
+    def count_present(self):
+        return self.count is not None
+
+    @JsonValidator("frequency is required")
+    def frequency_present(self):
+        return self.frequency is not None
 
 
 class Loan(JsonObject):
