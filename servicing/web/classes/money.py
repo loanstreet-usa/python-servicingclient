@@ -1,10 +1,8 @@
-from dataclasses import dataclass
 from typing import Optional
 
 from . import JsonObject, JsonValidator
 
 
-@dataclass
 class Money(JsonObject):
     attributes = {"amount", "currency"}
 
