@@ -30,6 +30,10 @@ class FixedPayment(JsonObject):
     def amount_present(self):
         return self.amount is not None
 
+    @JsonValidator("type is required")
+    def type_present(self):
+        return self.type is not None
+
 
 class Periods(JsonObject):
     attributes = {
