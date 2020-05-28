@@ -7,7 +7,7 @@ from servicing import ServicingClient
 from tests.web.mock_servicing_api_server import setup_mock_servicing_api_server, cleanup_mock_servicing_api_server
 
 
-class TestWebClient(unittest.TestCase):
+class ServicingClientTests(unittest.TestCase):
 
     def setUp(self):
         setup_mock_servicing_api_server(self)
