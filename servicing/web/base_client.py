@@ -7,12 +7,21 @@ from typing import Optional, Dict
 from urllib.error import HTTPError
 from urllib.parse import urlencode, urljoin
 from urllib.request import Request, urlopen
+from uuid import UUID
 
 import sys
 
 from ..errors import ServicingRequestError
 from ..version import __version__
 from .servicing_response import ServicingResponse
+
+
+class JSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, UUID):
+            return str(obj)
+        else:
+            return json.JSONEncoder.default(self, obj)
 
 
 class BaseClient:
@@ -92,7 +101,7 @@ class BaseClient:
         self, method: str, url: str, data: Optional[dict], headers: dict
     ):
         if data:
-            body = json.dumps(data).encode("utf-8")
+            body = self._dumps(data).encode("utf-8")
             headers["Content-Type"] = "application/json;charset=utf-8"
         else:
             body = None
@@ -139,3 +148,7 @@ class BaseClient:
         )
         system_info = f"{platform.system()}/{platform.release()}"
         return " ".join([python_version, client, system_info])
+
+    @staticmethod
+    def _dumps(value):
+        return json.dumps(value, cls=JSONEncoder)

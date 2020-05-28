@@ -1,5 +1,7 @@
 from uuid import UUID
 from typing import Optional
+
+from ...util import is_uuid
 from . import JsonObject, JsonValidator
 from .enums import (
     BenchmarkName,
@@ -116,17 +118,17 @@ class Loan(JsonObject):
         self.periods = periods
         self.time_zone_id = time_zone_id
 
-    @JsonValidator("agent_id attribute is required")
-    def agent_id_present(self):
-        return self.agent_id is not None
+    @JsonValidator("agent_id attribute is not a valid UUID")
+    def agent_id_is_uuid(self):
+        return is_uuid(self.agent_id)
 
-    @JsonValidator("borrower_id attribute is required")
-    def borrower_id_present(self):
-        return self.borrower_id is not None
+    @JsonValidator("borrower_id attribute is not a valid UUID")
+    def borrower_id_is_uuid(self):
+        return is_uuid(self.borrower_id)
 
-    @JsonValidator("lender_id attribute is required")
-    def lender_id_present(self):
-        return self.lender_id is not None
+    @JsonValidator("lender_id attribute is not a valid UUID")
+    def lender_id_is_uuid(self):
+        return is_uuid(self.lender_id)
 
     @JsonValidator("commitment attribute is required")
     def commitment_present(self):
