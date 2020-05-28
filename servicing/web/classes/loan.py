@@ -116,47 +116,38 @@ class Loan(JsonObject):
         self.periods = periods
         self.time_zone_id = time_zone_id
 
+    @JsonValidator("agent_id attribute is required")
+    def agent_id_present(self):
+        return self.agent_id is not None
 
-@JsonValidator("agent_id attribute is required")
-def agent_id_present(self):
-    return self.agent_id is not None
+    @JsonValidator("borrower_id attribute is required")
+    def borrower_id_present(self):
+        return self.borrower_id is not None
 
+    @JsonValidator("lender_id attribute is required")
+    def lender_id_present(self):
+        return self.lender_id is not None
 
-@JsonValidator("borrower_id attribute is required")
-def borrower_id_present(self):
-    return self.borrower_id is not None
+    @JsonValidator("commitment attribute is required")
+    def commitment_present(self):
+        return self.commitment is not None
 
+    @JsonValidator("compounding attribute is required")
+    def compounding_present(self):
+        return self.compounding is not None
 
-@JsonValidator("lender_id attribute is required")
-def lender_id_present(self):
-    return self.lender_id is not None
+    @JsonValidator("day_count attribute is required")
+    def day_count_present(self):
+        return self.day_count is not None
 
+    @JsonValidator("origination_date attribute is required")
+    def origination_date_present(self):
+        return self.origination_date is not None
 
-@JsonValidator("commitment attribute is required")
-def commitment_present(self):
-    return self.commitment is not None
+    @JsonValidator("periods attribute is required")
+    def periods_present(self):
+        return self.periods is not None
 
-
-@JsonValidator("compounding attribute is required")
-def compounding_present(self):
-    return self.compounding is not None
-
-
-@JsonValidator("day_count attribute is required")
-def day_count_present(self):
-    return self.day_count is not None
-
-
-@JsonValidator("origination_date attribute is required")
-def origination_date_present(self):
-    return self.origination_date is not None
-
-
-@JsonValidator("periods attribute is required")
-def periods_present(self):
-    return self.periods is not None
-
-
-@JsonValidator("time_zone_id attribute is required")
-def time_zone_id_present(self):
-    return self.time_zone_id is not None
+    @JsonValidator("time_zone_id attribute is required")
+    def time_zone_id_present(self):
+        return self.time_zone_id is not None
