@@ -111,7 +111,7 @@ class Loan(JsonObject):
         self.borrower_id = borrower_id
         self.lender_id = lender_id
         self.annual_rate = str(annual_rate)
-        self.benchmark = benchmark.value
+        self.benchmark = benchmark.value if benchmark else None
         self.commitment = commitment
         self.compounding = compounding.value
         self.day_count = day_count.value
