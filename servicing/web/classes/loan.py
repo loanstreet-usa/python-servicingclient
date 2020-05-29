@@ -100,7 +100,7 @@ class Loan(JsonObject):
         commitment: Money,
         compounding: Compounding,
         day_count: DayCount,
-        fixed_payment: FixedPayment,
+        fixed_payment: Optional[FixedPayment] = None,
         is_revolver: Optional[bool] = False,
         max_num_draws: Optional[int] = None,
         origination_date: str,
