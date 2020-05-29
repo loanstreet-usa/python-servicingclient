@@ -77,10 +77,10 @@ class ServicingClient(BaseClient):
             data=payment.to_dict(),
         )
 
-    # def get_benchmark_rate(self, *, benchmark_name: BenchmarkName, date: str):
-    #     return self.api_call(
-    #         method="GET", path=f"/v1/public/benchmark/{benchmark_name.value}/{date}"
-    #     )
+    def get_benchmark_rate(self, *, benchmark_name: BenchmarkName, date: str):
+        return self.api_call(
+            method="GET", path=f"/v1/public/benchmark/{benchmark_name.value}/{date}"
+        )
 
     def next_business_day(self, *, date: str):
         return self.api_call(

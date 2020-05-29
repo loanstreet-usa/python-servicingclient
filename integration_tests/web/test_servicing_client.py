@@ -112,9 +112,9 @@ class ServicingClientTests(unittest.TestCase):
         self.assertIsNotNone(resp["date"])
         self.assertEqual("2020-01-02", resp["date"], )
 
-    # def test_get_benchmark_rate(self):
-    #     client = ServicingClient(base_url=self.BASE_URL)
-    #     resp = client.get_benchmark_rate(benchmark_name=BenchmarkName.PRIME, date="2020-01-01")
-    #     self.assertIsNotNone(resp["rate"])
-    #     self.assertEqual(BenchmarkName.PRIME.value, resp["name"])
-    #     self.assertEqual("2020-01-01", resp["date"])
+    def test_get_benchmark_rate(self):
+        client = ServicingClient(base_url=self.BASE_URL)
+        resp = client.get_benchmark_rate(benchmark_name=BenchmarkName.PRIME, date="2020-01-01")
+        self.assertIsNotNone(resp["rate"])
+        self.assertEqual(BenchmarkName.PRIME.value, resp["name"])
+        self.assertEqual("2020-01-01", resp["date"])
