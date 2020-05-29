@@ -1,4 +1,5 @@
 from .base_client import BaseClient
+from .classes.enums import BenchmarkName
 from .classes.institution import Institution
 from .classes.loan import Loan
 from .classes.draw import Draw
@@ -30,6 +31,34 @@ class ServicingClient(BaseClient):
             method="POST", path="/v1/private/loan", data=loan.to_dict()
         )
 
+    def get_loan(self, *, loan_id: UUID):
+        if not is_uuid(loan_id):
+            raise ServicingInvalidPathParamError
+
+        return self.api_call(
+            method="GET", path=f"/v1/private/loan/{loan_id}"
+        )
+
+    def get_loan_balance(self, *, loan_id: UUID):
+        if not is_uuid(loan_id):
+            raise ServicingInvalidPathParamError
+
+        return self.api_call(
+            method="GET", path=f"/v1/private/loan/{loan_id}/balance"
+        )
+
+    def get_loan_interest(self, *, loan_id: UUID, start_date: str, end_date: str):
+        if not is_uuid(loan_id):
+            raise ServicingInvalidPathParamError
+
+        query_params = dict()
+        query_params["startDate"] = start_date
+        query_params["endDate"] = end_date
+
+        return self.api_call(
+            method="GET", path=f"/v1/private/loan/{loan_id}/interest", query_params=query_params
+        )
+
     def draw_funds(self, *, loan_id: UUID, draw: Draw):
         if not is_uuid(loan_id):
             raise ServicingInvalidPathParamError
@@ -47,6 +76,11 @@ class ServicingClient(BaseClient):
             path=f"/v1/private/loan/{loan_id}/payment",
             data=payment.to_dict(),
         )
+
+    # def get_benchmark_rate(self, *, benchmark_name: BenchmarkName, date: str):
+    #     return self.api_call(
+    #         method="GET", path=f"/v1/public/benchmark/{benchmark_name.value}/{date}"
+    #     )
 
     def next_business_day(self, *, date: str):
         return self.api_call(
