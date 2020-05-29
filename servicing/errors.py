@@ -20,6 +20,7 @@ class ServicingRequestError(ServicingClientError):
 
 class ServicingObjectFormationError(ServicingClientError):
     """Error raised when a constructed object is not valid/malformed"""
+
     pass
 
 
