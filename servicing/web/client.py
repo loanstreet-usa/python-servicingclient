@@ -21,15 +21,6 @@ class ServicingClient(BaseClient):
             raise ServicingInvalidPathParamError
         return self.api_call(method="GET", path=f"/v1/private/acl{oid}")
 
-    def auth(self):
-        return self.api_call(method="GET", path="/v1/public/auth}")
-
-    def auth_inst(self):
-        return self.api_call(method="GET", path="/v1/public/auth/inst}")
-
-    def principal(self):
-        return self.api_call(method="GET", path="/v1/public/auth/principal")
-
     def login(self, *, email: str, password: str) -> ServicingResponse:
         return self.api_call(
             method="POST",
@@ -143,7 +134,7 @@ class ServicingClient(BaseClient):
             data=payment.to_dict(),
         )
 
-    def create_draw(self, *, loan_id: UUID, draw: Draw) -> ServicingResponse:
+    def draw_funds(self, *, loan_id: UUID, draw: Draw) -> ServicingResponse:
         if not is_uuid(loan_id):
             raise ServicingInvalidPathParamError
         return self.api_call(

@@ -46,21 +46,6 @@ class ServicingClientTests(unittest.TestCase):
         self.assertIsNotNone(resp["institution_id"])
         return UUID(resp["institution_id"])
 
-    def test_auth(self):
-        client = ServicingClient(base_url=self.BASE_URL)
-        resp = client.auth()
-        self.assertTrue(resp.status, 200)
-
-    def test_auth_inst(self):
-        client = ServicingClient(base_url=self.BASE_URL)
-        resp = client.auth_inst()
-        self.assertTrue(resp.status, 200)
-
-    def test_principal(self):
-        client = ServicingClient(base_url=self.BASE_URL)
-        resp = client.principal()
-        self.assertTrue(resp.status, 200)
-
     def test_register_institution(self):
         client = ServicingClient(base_url=self.BASE_URL)
         institution = Institution(name="Integration Tests, Inc.")
@@ -122,7 +107,7 @@ class ServicingClientTests(unittest.TestCase):
         client = ServicingClient(base_url=self.BASE_URL)
         loan_id = self.register_loan()
         draw = Draw(amount=Money("10000"), date="2020-05-28")
-        client.create_draw(loan_id=loan_id, draw=draw)
+        client.draw_funds(loan_id=loan_id, draw=draw)
 
         resp = client.get_loan_invoice(loan_id=loan_id, period_number=1)
         self.assertIsNotNone(resp["loan_id"])
@@ -132,7 +117,7 @@ class ServicingClientTests(unittest.TestCase):
         client = ServicingClient(base_url=self.BASE_URL)
         loan_id = self.register_loan()
         draw = Draw(amount=Money("10000"), date="2020-05-28")
-        client.create_draw(loan_id=loan_id, draw=draw)
+        client.draw_funds(loan_id=loan_id, draw=draw)
         resp = client.get_loan_transactions(loan_id=loan_id, transaction_type=TransactionType.DRAW)
         self.assertTrue(isinstance(resp.data, list))
 
@@ -150,11 +135,11 @@ class ServicingClientTests(unittest.TestCase):
         self.assertIsNotNone(resp["date"])
         self.assertEqual("2020-05-28", resp["date"])
 
-    def test_create_draw(self):
+    def test_draw_funds(self):
         client = ServicingClient(base_url=self.BASE_URL)
         loan_id = self.register_loan()
         draw = Draw(amount=Money("10000"), date="2020-05-28")
-        resp = client.create_draw(loan_id=loan_id, draw=draw)
+        resp = client.draw_funds(loan_id=loan_id, draw=draw)
         self.assertIsNotNone(resp["transaction_id"])
         return loan_id
 
@@ -209,21 +194,3 @@ class ServicingClientTests(unittest.TestCase):
         client = ServicingClient(base_url=self.BASE_URL)
         resp = client.get_users()
         self.assertTrue(isinstance(resp.data, list))
-
-    def test_create_user(self):
-        client = ServicingClient(base_url=self.BASE_URL)
-        institution_id = UUID("d12fd58d-5939-4dc2-9d57-7c3fd7ce9026")
-        user = User(institution_id=institution_id, email="test@loan-street.com")
-        resp = client.create_user(user=user)
-        self.assertIsNotNone(resp["user_id"])
-
-    def test_get_user(self):
-        client = ServicingClient(base_url=self.BASE_URL)
-        institution_id = UUID("d12fd58d-5939-4dc2-9d57-7c3fd7ce9026")
-        user = User(institution_id=institution_id, email="test@loan-street.com")
-        resp = client.create_user(user=user)
-        self.assertIsNotNone(resp["user_id"])
-        user_id = UUID(resp["user_id"])
-        resp = client.get_user(user_id=user_id)
-        self.assertIsNotNone(resp["user_id"])
-        self.assertEqual(resp["user_id"], str(user_id))
