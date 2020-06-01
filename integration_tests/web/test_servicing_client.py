@@ -6,8 +6,9 @@ from servicing.web.classes.draw import Draw
 from servicing.web.classes.payment import Payment
 from servicing.web.classes.fund import Fund
 from servicing.web.classes.money import Money
+from servicing.web.classes.user import User
 
-from servicing.web.classes.enums import BenchmarkName, Compounding, DayCount, Frequency
+from servicing.web.classes.enums import BenchmarkName, Compounding, DayCount, Frequency, TransactionType
 
 from servicing.web.classes.institution import Institution
 from servicing import ServicingClient
@@ -44,6 +45,21 @@ class ServicingClientTests(unittest.TestCase):
         resp = client.register_institution(institution=institution)
         self.assertIsNotNone(resp["institution_id"])
         return UUID(resp["institution_id"])
+
+    def test_auth(self):
+        client = ServicingClient(base_url=self.BASE_URL)
+        resp = client.auth()
+        self.assertTrue(resp.status, 200)
+
+    def test_auth_inst(self):
+        client = ServicingClient(base_url=self.BASE_URL)
+        resp = client.auth_inst()
+        self.assertTrue(resp.status, 200)
+
+    def test_principal(self):
+        client = ServicingClient(base_url=self.BASE_URL)
+        resp = client.principal()
+        self.assertTrue(resp.status, 200)
 
     def test_register_institution(self):
         client = ServicingClient(base_url=self.BASE_URL)
@@ -102,6 +118,38 @@ class ServicingClientTests(unittest.TestCase):
         resp = client.get_loan_interest(loan_id=loan_id, start_date="2020-05-27", end_date="2020-05-27")
         self.assertTrue(isinstance(resp.data, list))
 
+    def test_get_loan_invoice(self):
+        client = ServicingClient(base_url=self.BASE_URL)
+        loan_id = self.register_loan()
+        draw = Draw(amount=Money("10000"), date="2020-05-28")
+        client.create_draw(loan_id=loan_id, draw=draw)
+
+        resp = client.get_loan_invoice(loan_id=loan_id, period_number=1)
+        self.assertIsNotNone(resp["loan_id"])
+        self.assertIsNotNone(resp["period_number"])
+
+    def test_get_loan_transactions(self):
+        client = ServicingClient(base_url=self.BASE_URL)
+        loan_id = self.register_loan()
+        draw = Draw(amount=Money("10000"), date="2020-05-28")
+        client.create_draw(loan_id=loan_id, draw=draw)
+        resp = client.get_loan_transactions(loan_id=loan_id, transaction_type=TransactionType.DRAW)
+        self.assertTrue(isinstance(resp.data, list))
+
+    def test_get_loan_transaction(self):
+        client = ServicingClient(base_url=self.BASE_URL)
+        loan_id = self.register_loan()
+
+        payment = Payment(amount=Money("5000"), date="2020-05-28")
+        resp = client.create_payment(loan_id=loan_id, payment=payment)
+        self.assertIsNotNone(resp["transaction_id"])
+        transaction_id = UUID(resp["transaction_id"])
+        resp = client.get_loan_transaction(loan_id=loan_id, transaction_id=transaction_id)
+
+        self.assertIsNotNone(resp["transaction_id"])
+        self.assertIsNotNone(resp["date"])
+        self.assertEqual("2020-05-28", resp["date"])
+
     def test_create_draw(self):
         client = ServicingClient(base_url=self.BASE_URL)
         loan_id = self.register_loan()
@@ -156,3 +204,26 @@ class ServicingClientTests(unittest.TestCase):
         self.assertEqual(fund_id, resp["fund_id"])
         self.assertEqual(str(institution_id), resp["institution_id"])
         self.assertEqual(fund.name, resp["name"])
+
+    def test_get_users(self):
+        client = ServicingClient(base_url=self.BASE_URL)
+        resp = client.get_users()
+        self.assertTrue(isinstance(resp.data, list))
+
+    def test_create_user(self):
+        client = ServicingClient(base_url=self.BASE_URL)
+        institution_id = UUID("d12fd58d-5939-4dc2-9d57-7c3fd7ce9026")
+        user = User(institution_id=institution_id, email="test@loan-street.com")
+        resp = client.create_user(user=user)
+        self.assertIsNotNone(resp["user_id"])
+
+    def test_get_user(self):
+        client = ServicingClient(base_url=self.BASE_URL)
+        institution_id = UUID("d12fd58d-5939-4dc2-9d57-7c3fd7ce9026")
+        user = User(institution_id=institution_id, email="test@loan-street.com")
+        resp = client.create_user(user=user)
+        self.assertIsNotNone(resp["user_id"])
+        user_id = UUID(resp["user_id"])
+        resp = client.get_user(user_id=user_id)
+        self.assertIsNotNone(resp["user_id"])
+        self.assertEqual(resp["user_id"], str(user_id))

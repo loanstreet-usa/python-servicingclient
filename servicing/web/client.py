@@ -1,10 +1,11 @@
 from .base_client import BaseClient
-from .classes.enums import BenchmarkName
+from .classes.enums import BenchmarkName, TransactionType
 from .classes.institution import Institution
 from .classes.loan import Loan
 from .classes.draw import Draw
 from .classes.fund import Fund
 from .classes.payment import Payment
+from .classes.user import User
 from .servicing_response import ServicingResponse
 from uuid import UUID
 from ..util import is_uuid
@@ -14,6 +15,20 @@ from ..errors import ServicingInvalidPathParamError
 class ServicingClient(BaseClient):
     def status(self) -> ServicingResponse:
         return self.api_call(method="GET", path="/v1/public/status")
+
+    def get_acl(self, oid: UUID):
+        if not is_uuid(oid):
+            raise ServicingInvalidPathParamError
+        return self.api_call(method="GET", path=f"/v1/private/acl{oid}")
+
+    def auth(self):
+        return self.api_call(method="GET", path="/v1/public/auth}")
+
+    def auth_inst(self):
+        return self.api_call(method="GET", path="/v1/public/auth/inst}")
+
+    def principal(self):
+        return self.api_call(method="GET", path="/v1/public/auth/principal")
 
     def login(self, *, email: str, password: str) -> ServicingResponse:
         return self.api_call(
@@ -67,12 +82,57 @@ class ServicingClient(BaseClient):
             query_params=query_params,
         )
 
-    def create_draw(self, *, loan_id: UUID, draw: Draw) -> ServicingResponse:
+    def get_loan_invoice(self, *, loan_id: UUID, period_number: int):
         if not is_uuid(loan_id):
             raise ServicingInvalidPathParamError
         return self.api_call(
-            method="POST", path=f"/v1/private/loan/{loan_id}/draw", data=draw.to_dict()
+            method="GET", path=f"/v1/private/loan/{loan_id}/invoice/{period_number}"
         )
+
+    def get_loan_transactions(
+        self, *, loan_id: UUID, transaction_type: TransactionType
+    ):
+        if not is_uuid(loan_id):
+            raise ServicingInvalidPathParamError
+        query_params = {"type": transaction_type.value}
+        return self.api_call(
+            method="GET",
+            path=f"/v1/private/loan/{loan_id}/transaction",
+            query_params=query_params,
+        )
+
+    def void_loan_transaction(self, *, loan_id: UUID, transaction_id: UUID):
+        if not is_uuid(loan_id):
+            raise ServicingInvalidPathParamError
+        if not is_uuid(transaction_id):
+            raise ServicingInvalidPathParamError
+        return self.api_call(
+            method="POST",
+            path=f"/v1/private/loan/{loan_id}/transaction/{transaction_id}/void",
+        )
+
+    def get_loan_transaction(self, *, loan_id: UUID, transaction_id: UUID):
+        if not is_uuid(loan_id):
+            raise ServicingInvalidPathParamError
+        if not is_uuid(transaction_id):
+            raise ServicingInvalidPathParamError
+        return self.api_call(
+            method="GET",
+            path=f"/v1/private/loan/{loan_id}/transaction/{transaction_id}",
+        )
+
+    def get_users(self):
+        return self.api_call(method="GET", path="/v1/private/user")
+
+    def create_user(self, *, user: User):
+        return self.api_call(
+            method="POST", path="/v1/private/user", data=user.to_dict()
+        )
+
+    def get_user(self, *, user_id: UUID):
+        if not is_uuid(user_id):
+            raise ServicingInvalidPathParamError
+        return self.api_call(method="POST", path=f"/v1/private/user/{user_id}")
 
     def create_payment(self, *, loan_id: UUID, payment: Payment) -> ServicingResponse:
         if not is_uuid(loan_id):
@@ -81,6 +141,13 @@ class ServicingClient(BaseClient):
             method="POST",
             path=f"/v1/private/loan/{loan_id}/payment",
             data=payment.to_dict(),
+        )
+
+    def create_draw(self, *, loan_id: UUID, draw: Draw) -> ServicingResponse:
+        if not is_uuid(loan_id):
+            raise ServicingInvalidPathParamError
+        return self.api_call(
+            method="POST", path=f"/v1/private/loan/{loan_id}/draw", data=draw.to_dict()
         )
 
     def get_benchmark_rate(
