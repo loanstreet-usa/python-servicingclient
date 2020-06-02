@@ -97,14 +97,12 @@ class LoanClient:
             query_params=query_params,
         )
 
-    def void_transaction(self, *, loan_id: UUID, transaction_id: UUID):
-        if not is_uuid(loan_id):
-            raise ServicingInvalidPathParamError
+    def void_transaction(self, *, transaction_id: UUID):
         if not is_uuid(transaction_id):
             raise ServicingInvalidPathParamError
         return self.api_call(
             method="POST",
-            path=f"/v1/private/loan/{loan_id}/transaction/{transaction_id}/void",
+            path=f"/v1/private/transaction/{transaction_id}/void",
         )
 
     def get_transaction(self, *, transaction_id: UUID):
