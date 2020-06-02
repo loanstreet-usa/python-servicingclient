@@ -12,7 +12,7 @@ from ..util import is_uuid
 from ..errors import ServicingInvalidPathParamError
 
 
-class InstitutionsClient:
+class InstitutionClient:
     def __init__(self, api_call):
         self.api_call = api_call
 
@@ -46,7 +46,7 @@ class InstitutionsClient:
         return self.api_call(method="GET", path=f"/v1/private/fund/{fund_id}")
 
 
-class LoansClient:
+class LoanClient:
     def __init__(self, api_call):
         self.api_call = api_call
 
@@ -131,7 +131,7 @@ class LoansClient:
         )
 
 
-class UsersClient:
+class UserClient:
     def __init__(self, api_call):
         self.api_call = api_call
 
@@ -152,9 +152,9 @@ class UsersClient:
 class ServicingClient(BaseClient):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.institutions = InstitutionsClient(api_call=self.api_call)
-        self.loans = LoansClient(api_call=self.api_call)
-        self.users = UsersClient(api_call=self.api_call)
+        self.institution = InstitutionClient(api_call=self.api_call)
+        self.loan = LoanClient(api_call=self.api_call)
+        self.user = UserClient(api_call=self.api_call)
 
     def status(self) -> ServicingResponse:
         return self.api_call(method="GET", path="/v1/public/status")
