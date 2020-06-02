@@ -4,6 +4,7 @@ from .day_count import DayCount
 from .fixed_payment_type import FixedPaymentType
 from .frequency import Frequency
 from .start_type import StartType
+from .transaction_type import TransactionType
 
 __all__ = [
     "BenchmarkName",
@@ -12,4 +13,5 @@ __all__ = [
     "FixedPaymentType",
     "Frequency",
     "StartType",
+    "TransactionType",
 ]
