@@ -13,7 +13,6 @@ from ..errors import ServicingInvalidPathParamError
 
 
 class InstitutionsClient:
-
     def __init__(self, api_call):
         self.api_call = api_call
 
@@ -67,7 +66,7 @@ class LoansClient:
         return self.api_call(method="GET", path=f"/v1/private/loan/{loan_id}/balance")
 
     def get_interest(
-            self, *, loan_id: UUID, start_date: str, end_date: str
+        self, *, loan_id: UUID, start_date: str, end_date: str
     ) -> ServicingResponse:
         if not is_uuid(loan_id):
             raise ServicingInvalidPathParamError
@@ -88,9 +87,7 @@ class LoansClient:
             method="GET", path=f"/v1/private/loan/{loan_id}/invoice/{period_number}"
         )
 
-    def get_transactions(
-            self, *, loan_id: UUID, transaction_type: TransactionType
-    ):
+    def get_transactions(self, *, loan_id: UUID, transaction_type: TransactionType):
         if not is_uuid(loan_id):
             raise ServicingInvalidPathParamError
         query_params = {"type": transaction_type.value}
@@ -114,8 +111,7 @@ class LoansClient:
         if not is_uuid(transaction_id):
             raise ServicingInvalidPathParamError
         return self.api_call(
-            method="GET",
-            path=f"/v1/private/transaction/{transaction_id}",
+            method="GET", path=f"/v1/private/transaction/{transaction_id}"
         )
 
     def draw_funds(self, *, loan_id: UUID, draw: Draw) -> ServicingResponse:
@@ -154,7 +150,6 @@ class UsersClient:
 
 
 class ServicingClient(BaseClient):
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.institutions = InstitutionsClient(api_call=self.api_call)
@@ -177,7 +172,7 @@ class ServicingClient(BaseClient):
         )
 
     def get_benchmark_rate(
-            self, *, benchmark_name: BenchmarkName, date: str
+        self, *, benchmark_name: BenchmarkName, date: str
     ) -> ServicingResponse:
         return self.api_call(
             method="GET", path=f"/v1/public/benchmark/{benchmark_name.value}/{date}"
