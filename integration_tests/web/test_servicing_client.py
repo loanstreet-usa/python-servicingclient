@@ -13,6 +13,7 @@ from servicing.web.classes.enums import BenchmarkName, Compounding, DayCount, Fr
 from servicing.web.classes.institution import Institution
 from servicing import ServicingClient
 
+from Math import random
 
 class ServicingClientTests(unittest.TestCase):
     BASE_URL = "https://api-dev.loan-street.com:8443/"
@@ -90,6 +91,38 @@ class ServicingClientTests(unittest.TestCase):
         resp = client.loan.get(loan_id=loan_id)
         self.assertIsNotNone(resp["loan_id"])
         self.assertEqual(str(loan_id), resp["loan_id"])
+
+    def test_update_loan(self):
+        client = ServicingClient(base_url=self.BASE_URL)
+        loan_id = self.register_loan()
+
+        fixed_payment = FixedPayment(amount=Money("10000"))
+        periods = Periods(count=120, frequency=Frequency.MONTHLY)
+        random_rate = random.random()
+
+        updated_loan = Loan(
+            agent_id=UUID("898be40f-a26e-43cb-b15c-679afdc7e278"),
+            borrower_id=UUID("d12fd58d-5939-4dc2-9d57-7c3fd7ce9026"),
+            lender_id=UUID("467001e0-0631-45c0-b7f1-02b4424fd526"),
+            annual_rate=random_rate,
+            benchmark=BenchmarkName.LIBOR_OVERNIGHT,
+            commitment=Money("1000000"),
+            compounding=Compounding.SIMPLE,
+            day_count=DayCount.ACTUAL_360,
+            fixed_payment=fixed_payment,
+            origination_date="2020-05-27",
+            time_zone_id="America/New_York",
+            periods=periods,
+        )
+        
+        resp = client.loan.update(
+            loan_id=loan_id,
+            loan = updated_loan
+        )
+
+        self.assertIsNotNone(resp["loan_id"])
+        self.assertEqual(str(loan_id), resp["loan_id"])
+        self.assertAlmostEqual(random_rate, resp["annual_rate"])
 
     def test_get_loan_balance(self):
         client = ServicingClient(base_url=self.BASE_URL)

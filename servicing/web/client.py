@@ -60,6 +60,13 @@ class LoanClient:
             raise ServicingInvalidPathParamError
         return self.api_call(method="GET", path=f"/v1/private/loan/{loan_id}")
 
+    def update(self, *, loan_id: UUID, loan: Loan) -> ServicingResponse:
+        if not is_uuid(loan_id):
+            raise ServicingInvalidPathParamError
+        return self.api_call(
+            method="PUT", path="/v1/private/loan/{loan_id}", data=loan.to_dict()
+        )
+
     def get_balance(self, *, loan_id: UUID) -> ServicingResponse:
         if not is_uuid(loan_id):
             raise ServicingInvalidPathParamError
