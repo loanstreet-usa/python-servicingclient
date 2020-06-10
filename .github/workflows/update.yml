@@ -1,31 +1,30 @@
-name: Check Pull Request
+name: Update Master
+
+env:
+  PYTHON_VERSION: 3.8
 
 on:
-  pull_request:
+  push:
     branches: [ master ]
 
 jobs:
-  check:
+  update:
 
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.6, 3.7, 3.8]
 
     steps:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: ${{ env.PYTHON_VERSION }}
     - name: Install
       run: python setup.py install
     - name: Check
       run: python setup.py validate
     - name: SonarQube
-      if: ${{ matrix.python-version == 3.8 }}
       uses: sonarsource/sonarcloud-github-action@v1.3
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
