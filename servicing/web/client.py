@@ -47,6 +47,17 @@ class InstitutionClient:
             raise ServicingInvalidPathParamError
         return self.api_call(method="GET", path=f"/v1/private/fund/{fund_id}")
 
+    def list_loans(
+        self, *, institution_id: UUID, view: ViewType = ViewType.BASIC
+    ) -> ServicingResponse:
+        if not is_uuid(institution_id):
+            raise ServicingInvalidPathParamError
+        return self.api_call(
+            method="GET",
+            path=f"/v1/private/institution/{institution_id}/loan",
+            query_params={"view": view.value},
+        )
+
 
 class LoanClient:
     def __init__(self, api_call):
