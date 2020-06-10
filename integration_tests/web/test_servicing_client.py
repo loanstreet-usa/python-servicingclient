@@ -1,19 +1,17 @@
 import unittest
 from uuid import UUID
 
-from servicing.web.classes.loan import Loan, FixedPayment, Periods
-from servicing.web.classes.draw import Draw
-from servicing.web.classes.payment import Payment
-from servicing.web.classes.fund import Fund
-from servicing.web.classes.money import Money
-from servicing.web.classes.user import User
+import random
 
-from servicing.web.classes.enums import BenchmarkName, Compounding, DayCount, Frequency, TransactionType
-
-from servicing.web.classes.institution import Institution
 from servicing import ServicingClient
+from servicing.web.classes.draw import Draw
+from servicing.web.classes.enums import BenchmarkName, Compounding, DayCount, Frequency, TransactionType
+from servicing.web.classes.fund import Fund
+from servicing.web.classes.institution import Institution
+from servicing.web.classes.loan import Loan, FixedPayment, Periods
+from servicing.web.classes.money import Money
+from servicing.web.classes.payment import Payment
 
-from Math import random
 
 class ServicingClientTests(unittest.TestCase):
     BASE_URL = "https://api-dev.loan-street.com:8443/"
@@ -117,7 +115,7 @@ class ServicingClientTests(unittest.TestCase):
         
         resp = client.loan.update(
             loan_id=loan_id,
-            loan = updated_loan
+            loan=updated_loan
         )
 
         self.assertIsNotNone(resp["loan_id"])
@@ -196,6 +194,7 @@ class ServicingClientTests(unittest.TestCase):
         self.assertIsNotNone(resp["date"])
         self.assertEqual("2020-01-02", resp["date"], )
 
+    @unittest.skip
     def test_get_benchmark_rate(self):
         client = ServicingClient(base_url=self.BASE_URL)
         resp = client.get_benchmark_rate(benchmark_name=BenchmarkName.PRIME, date="2020-01-02")
