@@ -1,8 +1,6 @@
-import asyncio
 import re
 import unittest
 
-import servicing.errors as err
 from servicing import ServicingClient
 from tests.web.mock_servicing_api_server import setup_mock_servicing_api_server, cleanup_mock_servicing_api_server
 
