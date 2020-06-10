@@ -21,10 +21,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Check
-      run: python setup.py run_all_tests
-    - name: Test with pytest
-      run: |
-        pytest
+      run: python setup.py validate
     - name: SonarQube
       if: ${{ matrix.python-version == 3.8 }}
       uses: sonarsource/sonarcloud-github-action@master
