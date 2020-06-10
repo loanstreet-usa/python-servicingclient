@@ -1,5 +1,7 @@
+from typing import Optional
+
 from .base_client import BaseClient
-from .classes.enums import BenchmarkName, TransactionType
+from .classes.enums import BenchmarkName, TransactionType, ViewType
 from .classes.institution import Institution
 from .classes.loan import Loan
 from .classes.draw import Draw
@@ -94,10 +96,21 @@ class LoanClient:
             method="GET", path=f"/v1/private/loan/{loan_id}/invoice/{period_number}"
         )
 
-    def get_transactions(self, *, loan_id: UUID, transaction_type: TransactionType):
+    def get_transactions(
+        self,
+        *,
+        loan_id: UUID,
+        transaction_type: Optional[TransactionType] = None,
+        view: ViewType = ViewType.BASIC,
+    ):
         if not is_uuid(loan_id):
             raise ServicingInvalidPathParamError
-        query_params = {"type": transaction_type.value}
+
+        query_params = {"view": view.value}
+
+        if transaction_type is not None:
+            query_params["type"] = transaction_type.value
+
         return self.api_call(
             method="GET",
             path=f"/v1/private/loan/{loan_id}/transaction",
@@ -108,8 +121,7 @@ class LoanClient:
         if not is_uuid(transaction_id):
             raise ServicingInvalidPathParamError
         return self.api_call(
-            method="POST",
-            path=f"/v1/private/transaction/{transaction_id}/void",
+            method="POST", path=f"/v1/private/transaction/{transaction_id}/void"
         )
 
     def get_transaction(self, *, transaction_id: UUID):

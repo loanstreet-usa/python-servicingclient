@@ -5,6 +5,7 @@ from .fixed_payment_type import FixedPaymentType
 from .frequency import Frequency
 from .start_type import StartType
 from .transaction_type import TransactionType
+from .view_type import ViewType
 
 __all__ = [
     "BenchmarkName",
@@ -14,4 +15,5 @@ __all__ = [
     "Frequency",
     "StartType",
     "TransactionType",
+    "ViewType",
 ]
