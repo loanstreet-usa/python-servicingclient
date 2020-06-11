@@ -15,7 +15,7 @@ long_description = ""
 with codecs.open(os.path.join(here, "README.md"), encoding="utf-8") as readme:
     long_description = readme.read()
 
-tests_require = ["pytest", "pytest-cov", "codecov", "flake8", "black", "psutil"]
+tests_require = ["pytest", "coverage", "flake8", "black", "psutil"]
 
 
 class BaseCommand(Command):
@@ -92,17 +92,23 @@ class ValidateCommand(BaseCommand):
         self._run("Running flake8…", [sys.executable, "-m", "flake8", f"{here}/servicing"])
 
         target = (self.utt or self.unit_test_target or self.test_target).replace("tests/", "")
+
         self._run(
             "Running pytest…",
             [
                 sys.executable,
                 "-m",
+                "coverage",
+                "run",
+                "--branch",
+                f"--source={here}/servicing",
+                "-m",
                 "pytest",
-                "--cov-report=xml",
-                f"--cov={here}/servicing",
                 f"tests/{target}",
             ],
         )
+        self._run("Generating coverage...", [sys.executable, "-m", "coverage", "xml", "-i"])
+
 
 
 class RunAllTestsCommand(ValidateCommand):
@@ -133,11 +139,26 @@ class RunAllTestsCommand(ValidateCommand):
             [
                 sys.executable,
                 "-m",
+                "coverage",
+                "run",
+                "--branch",
+                f"--source={here}/servicing",
+                "-m",
                 "pytest",
-                "--cov-report=xml",
-                f"--cov={here}/servicing",
                 f"integration_tests/{target}",
-            ],
+            ]
+        )
+        self._run(
+            "Generating integration coverage...",
+            [
+                sys.executable,
+                "-m",
+                "coverage",
+                "xml",
+                "-i",
+                "-o",
+                "coverage-integration.xml"
+            ]
         )
 
 

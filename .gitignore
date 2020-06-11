@@ -15,10 +15,9 @@ __pycache__/
 env*/
 venv/
 
-# codecov / coverage
+# coverage
 .coverage*
-cov_*
-coverage.xml
+coverage*.xml
 
 # due to using tox and pytest
 .tox
