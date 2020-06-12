@@ -108,7 +108,7 @@ class LoanClient(ResourceClient):
             method="GET", path=f"/v1/private/loan/{loan_id}/invoice/{period_number}"
         )
 
-    def get_transactions(
+    def list_transactions(
         self,
         *,
         loan_id: UUID,
@@ -129,20 +129,6 @@ class LoanClient(ResourceClient):
             query_params=query_params,
         )
 
-    def void_transaction(self, *, transaction_id: UUID):
-        if not is_uuid(transaction_id):
-            raise ServicingInvalidPathParamError
-        return self.api_call(
-            method="POST", path=f"/v1/private/transaction/{transaction_id}/void"
-        )
-
-    def get_transaction(self, *, transaction_id: UUID):
-        if not is_uuid(transaction_id):
-            raise ServicingInvalidPathParamError
-        return self.api_call(
-            method="GET", path=f"/v1/private/transaction/{transaction_id}"
-        )
-
     def draw_funds(self, *, loan_id: UUID, draw: Draw) -> ServicingResponse:
         if not is_uuid(loan_id):
             raise ServicingInvalidPathParamError
@@ -157,6 +143,24 @@ class LoanClient(ResourceClient):
             method="POST",
             path=f"/v1/private/loan/{loan_id}/payment",
             data=payment.to_dict(),
+        )
+
+
+class TransactionClient(ResourceClient):
+    def get(self, *, transaction_id: UUID):
+        if not is_uuid(transaction_id):
+            raise ServicingInvalidPathParamError
+
+        return self.api_call(
+            method="GET", path=f"/v1/private/transaction/{transaction_id}"
+        )
+
+    def void(self, *, transaction_id: UUID):
+        if not is_uuid(transaction_id):
+            raise ServicingInvalidPathParamError
+
+        return self.api_call(
+            method="POST", path=f"/v1/private/transaction/{transaction_id}/void"
         )
 
 
@@ -181,6 +185,7 @@ class ServicingClient(BaseClient):
         self.institution = InstitutionClient(client=self)
         self.loan = LoanClient(client=self)
         self.user = UserClient(client=self)
+        self.transactions = TransactionClient(client=self)
 
     def status(self) -> ServicingResponse:
         return self.api_call(method="GET", path="/v1/public/status")
