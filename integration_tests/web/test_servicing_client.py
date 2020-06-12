@@ -1,3 +1,5 @@
+import os
+import ssl
 import unittest
 from uuid import UUID
 
@@ -14,10 +16,23 @@ from servicing.web.classes.payment import Payment
 
 
 class ServicingClientTests(unittest.TestCase):
-    BASE_URL = "https://api-dev.loan-street.com:8443/"
+    BASE_URL = os.getenv("BASE_URL") or "https://api-dev.loan-street.com:8443/"
+    TOKEN = os.getenv("TOKEN")
+
+    def setUp(self):
+        self.client = ServicingClient(base_url=self.BASE_URL, token=self.TOKEN, ssl=self.__ssl_ctx())
+
+    def __ssl_ctx(self):
+        ctx = None
+
+        if "localhost" in self.BASE_URL.lower() or "127.0.0.1" in self.BASE_URL:
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+
+        return ctx
 
     def register_loan(self) -> UUID:
-        client = ServicingClient(base_url=self.BASE_URL)
         fixed_payment = FixedPayment(amount=Money("10000"))
         periods = Periods(count=120, frequency=Frequency.MONTHLY)
         loan = Loan(
@@ -34,36 +49,31 @@ class ServicingClientTests(unittest.TestCase):
             time_zone_id="America/New_York",
             periods=periods,
         )
-        resp = client.loan.register(loan=loan)
+        resp = self.client.loan.register(loan=loan).validate()
         self.assertIsNotNone(resp["loan_id"])
         return UUID(resp["loan_id"])
 
     def register_institution(self) -> UUID:
-        client = ServicingClient(base_url=self.BASE_URL)
         institution = Institution(name="Integration Tests, Inc.")
-        resp = client.institution.register(institution=institution)
+        resp = self.client.institution.register(institution=institution).validate()
         self.assertIsNotNone(resp["institution_id"])
         return UUID(resp["institution_id"])
 
     def test_register_institution(self):
-        client = ServicingClient(base_url=self.BASE_URL)
         institution = Institution(name="Integration Tests, Inc.")
-        resp = client.institution.register(institution=institution)
+        resp = self.client.institution.register(institution=institution).validate()
         self.assertIsNotNone(resp["institution_id"])
 
     def test_get_institution(self):
-        client = ServicingClient(base_url=self.BASE_URL)
         institution_id = self.register_institution()
-        resp = client.institution.get(institution_id=institution_id)
+        resp = self.client.institution.get(institution_id=institution_id).validate()
         self.assertIsNotNone(resp["institution_id"])
 
     def test_get_institutions(self):
-        client = ServicingClient(base_url=self.BASE_URL)
-        resp = client.institution.get_all()
+        resp = self.client.institution.get_all().validate()
         self.assertTrue(isinstance(resp.data, list))
 
     def test_register_loan(self):
-        client = ServicingClient(base_url=self.BASE_URL)
         fixed_payment = FixedPayment(amount=Money("10000"))
         periods = Periods(count=120, frequency=Frequency.MONTHLY)
         loan = Loan(
@@ -80,18 +90,16 @@ class ServicingClientTests(unittest.TestCase):
             time_zone_id="America/New_York",
             periods=periods,
         )
-        resp = client.loan.register(loan=loan)
+        resp = self.client.loan.register(loan=loan).validate()
         self.assertIsNotNone(resp["loan_id"])
 
     def test_get_loan(self):
-        client = ServicingClient(base_url=self.BASE_URL)
         loan_id = self.register_loan()
-        resp = client.loan.get(loan_id=loan_id)
+        resp = self.client.loan.get(loan_id=loan_id).validate()
         self.assertIsNotNone(resp["loan_id"])
         self.assertEqual(str(loan_id), resp["loan_id"])
 
     def test_update_loan(self):
-        client = ServicingClient(base_url=self.BASE_URL)
         loan_id = self.register_loan()
 
         fixed_payment = FixedPayment(amount=Money("10000"))
@@ -113,116 +121,98 @@ class ServicingClientTests(unittest.TestCase):
             periods=periods,
         )
         
-        resp = client.loan.update(
+        resp = self.client.loan.update(
             loan_id=loan_id,
             loan=updated_loan
-        )
+        ).validate()
 
         self.assertIsNotNone(resp["loan_id"])
         self.assertEqual(str(loan_id), resp["loan_id"])
         self.assertAlmostEqual(random_rate, resp["annual_rate"])
 
-    def test_get_loan_balance(self):
-        client = ServicingClient(base_url=self.BASE_URL)
-        loan_id = self.register_loan()
-        resp = client.loan.get_balance(loan_id=loan_id)
-        self.assertIsNotNone(resp["principal"])
-
-    def test_get_loan_interest(self):
-        client = ServicingClient(base_url=self.BASE_URL)
-        loan_id = self.register_loan()
-        resp = client.loan.get_interest(loan_id=loan_id, start_date="2020-05-27", end_date="2020-05-27")
-        self.assertTrue(isinstance(resp.data, list))
-
     def test_get_loan_invoice(self):
-        client = ServicingClient(base_url=self.BASE_URL)
         loan_id = self.register_loan()
         draw = Draw(amount=Money("10000"), date="2020-05-28")
-        client.loan.draw_funds(loan_id=loan_id, draw=draw)
+        self.client.loan.draw_funds(loan_id=loan_id, draw=draw)
 
-        resp = client.loan.get_invoice(loan_id=loan_id, period_number=1)
+        resp = self.client.loan.get_invoice(loan_id=loan_id, period_number=1).validate()
         self.assertIsNotNone(resp["loan_id"])
         self.assertIsNotNone(resp["period_number"])
 
-    def test_get_loan_transactions(self):
-        client = ServicingClient(base_url=self.BASE_URL)
+    def test_list_loan_transactions(self):
         loan_id = self.register_loan()
         draw = Draw(amount=Money("10000"), date="2020-05-28")
-        client.loan.draw_funds(loan_id=loan_id, draw=draw)
-        resp = client.loan.get_transactions(loan_id=loan_id, transaction_type=TransactionType.DRAW)
+        self.client.loan.draw_funds(loan_id=loan_id, draw=draw)
+        resp = self.client.loan.list_transactions(loan_id=loan_id, transaction_type=TransactionType.DRAW).validate()
         self.assertTrue(isinstance(resp.data, list))
 
     def test_get_loan_transaction(self):
-        client = ServicingClient(base_url=self.BASE_URL)
         loan_id = self.register_loan()
 
         payment = Payment(amount=Money("5000"), date="2020-05-28")
-        resp = client.loan.create_payment(loan_id=loan_id, payment=payment)
+        resp = self.client.loan.create_payment(loan_id=loan_id, payment=payment)
         self.assertIsNotNone(resp["transaction_id"])
         transaction_id = UUID(resp["transaction_id"])
-        resp = client.loan.get_transaction(transaction_id=transaction_id)
+        resp = self.client.transaction.get(transaction_id=transaction_id).validate()
 
         self.assertIsNotNone(resp["transaction_id"])
         self.assertIsNotNone(resp["date"])
         self.assertEqual("2020-05-28", resp["date"])
 
+    def test_list_loan_trackers(self):
+        loan_id = self.register_loan()
+        resp = self.client.loan.list_trackers(loan_id=loan_id).validate()
+        self.assertTrue(isinstance(resp.data, list))
+
     def test_draw_funds(self):
-        client = ServicingClient(base_url=self.BASE_URL)
         loan_id = self.register_loan()
         draw = Draw(amount=Money("10000"), date="2020-05-28")
-        resp = client.loan.draw_funds(loan_id=loan_id, draw=draw)
+        resp = self.client.loan.draw_funds(loan_id=loan_id, draw=draw).validate()
         self.assertIsNotNone(resp["transaction_id"])
         return loan_id
 
     def test_create_payment(self):
-        client = ServicingClient(base_url=self.BASE_URL)
         loan_id = self.register_loan()
         payment = Payment(amount=Money("5000"), date="2020-05-28")
-        resp = client.loan.create_payment(loan_id=loan_id, payment=payment)
+        resp = self.client.loan.create_payment(loan_id=loan_id, payment=payment).validate()
         self.assertIsNotNone(resp["transaction_id"])
         return loan_id
 
     def test_next_business_day(self):
-        client = ServicingClient(base_url=self.BASE_URL)
-        resp = client.next_business_day(date="2020-01-01")
+        resp = self.client.next_business_day(date="2020-01-01").validate()
         self.assertIsNotNone(resp["date"])
         self.assertEqual("2020-01-02", resp["date"])
 
     def test_previous_business_day(self):
-        client = ServicingClient(base_url=self.BASE_URL)
-        resp = client.previous_business_day(date="2020-01-02")
+        resp = self.client.previous_business_day(date="2020-01-02")
         self.assertIsNotNone(resp["date"])
         self.assertEqual("2020-01-02", resp["date"], )
 
     @unittest.skip
     def test_get_benchmark_rate(self):
-        client = ServicingClient(base_url=self.BASE_URL)
-        resp = client.get_benchmark_rate(benchmark_name=BenchmarkName.PRIME, date="2020-01-02")
+        resp = self.client.get_benchmark_rate(benchmark_name=BenchmarkName.PRIME, date="2020-01-02").validate()
         self.assertIsNotNone(resp["rate"])
         self.assertEqual(BenchmarkName.PRIME.value, resp["name"])
         self.assertEqual("2020-01-01", resp["date"])
 
     def test_create_fund(self):
-        client = ServicingClient(base_url=self.BASE_URL)
         institution_id = self.register_institution()
         fund = Fund(name="Integration Fund")
-        resp = client.institution.create_fund(institution_id=institution_id, fund=fund)
+        resp = self.client.institution.create_fund(institution_id=institution_id, fund=fund).validate()
         self.assertIsNotNone(resp["fund_id"])
 
     def test_get_fund(self):
-        client = ServicingClient(base_url=self.BASE_URL)
         institution_id = self.register_institution()
         fund = Fund(name="Integration Fund")
-        resp = client.institution.create_fund(institution_id=institution_id, fund=fund)
+        resp = self.client.institution.create_fund(institution_id=institution_id, fund=fund).validate()
         self.assertIsNotNone(resp["fund_id"])
         fund_id = resp["fund_id"]
-        resp = client.institution.get_fund(fund_id=fund_id)
+        resp = self.client.institution.get_fund(fund_id=fund_id).validate()
         self.assertIsNotNone(resp["fund_id"])
         self.assertEqual(fund_id, resp["fund_id"])
         self.assertEqual(str(institution_id), resp["institution_id"])
         self.assertEqual(fund.name, resp["name"])
 
     def test_get_users(self):
-        client = ServicingClient(base_url=self.BASE_URL)
-        resp = client.user.get_all()
+        resp = self.client.user.get_all().validate()
         self.assertTrue(isinstance(resp.data, list))
