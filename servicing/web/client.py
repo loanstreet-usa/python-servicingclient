@@ -1,5 +1,7 @@
 from typing import Optional
 
+import abc
+
 from .base_client import BaseClient
 from .classes.enums import BenchmarkName, TransactionType, ViewType
 from .classes.institution import Institution
@@ -14,10 +16,12 @@ from ..util import is_uuid
 from ..errors import ServicingInvalidPathParamError
 
 
-class InstitutionClient:
-    def __init__(self, api_call):
-        self.api_call = api_call
+class ResourceClient(abc.ABC):
+    def __init__(self, *, client: BaseClient):
+        self.api_call = client.api_call
 
+
+class InstitutionClient(ResourceClient):
     def register(self, *, institution: Institution) -> ServicingResponse:
         return self.api_call(
             method="POST", path="/v1/private/institution", data=institution.to_dict()
@@ -59,10 +63,7 @@ class InstitutionClient:
         )
 
 
-class LoanClient:
-    def __init__(self, api_call):
-        self.api_call = api_call
-
+class LoanClient(ResourceClient):
     def register(self, *, loan: Loan) -> ServicingResponse:
         return self.api_call(
             method="POST", path="/v1/private/loan", data=loan.to_dict()
@@ -159,10 +160,7 @@ class LoanClient:
         )
 
 
-class UserClient:
-    def __init__(self, api_call):
-        self.api_call = api_call
-
+class UserClient(ResourceClient):
     def get_all(self):
         return self.api_call(method="GET", path="/v1/private/user")
 
@@ -180,9 +178,9 @@ class UserClient:
 class ServicingClient(BaseClient):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.institution = InstitutionClient(api_call=self.api_call)
-        self.loan = LoanClient(api_call=self.api_call)
-        self.user = UserClient(api_call=self.api_call)
+        self.institution = InstitutionClient(client=self)
+        self.loan = LoanClient(client=self)
+        self.user = UserClient(client=self)
 
     def status(self) -> ServicingResponse:
         return self.api_call(method="GET", path="/v1/public/status")
