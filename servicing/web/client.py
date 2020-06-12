@@ -1,4 +1,5 @@
-from typing import Optional
+from datetime import date
+from typing import Optional, Union
 
 import abc
 
@@ -12,7 +13,7 @@ from .classes.payment import Payment
 from .classes.user import User
 from .servicing_response import ServicingResponse
 from uuid import UUID
-from ..util import is_uuid
+from ..util import is_uuid, RequireUuid, format_date
 from ..errors import ServicingInvalidPathParamError
 
 
@@ -126,6 +127,21 @@ class LoanClient(ResourceClient):
         return self.api_call(
             method="GET",
             path=f"/v1/private/loan/{loan_id}/transaction",
+            query_params=query_params,
+        )
+
+    @RequireUuid("loan_id")
+    def list_trackers(
+        self, *, loan_id: UUID, end_date: Optional[Union[date, str]] = None
+    ):
+        query_params = {}
+
+        if end_date is not None:
+            query_params["date"] = format_date(end_date)
+
+        return self.api_call(
+            method="POST",
+            path=f"/v1/private/loan/{loan_id}/tracker",
             query_params=query_params,
         )
 
