@@ -70,36 +70,26 @@ class LoanClient(ResourceClient):
             method="POST", path="/v1/private/loan", data=loan.to_dict()
         )
 
-    def get(self, *, loan_id: UUID) -> ServicingResponse:
+    def get(
+        self, *, loan_id: UUID, view: Optional[ViewType] = None
+    ) -> ServicingResponse:
         if not is_uuid(loan_id):
             raise ServicingInvalidPathParamError
-        return self.api_call(method="GET", path=f"/v1/private/loan/{loan_id}")
+
+        query_params = {}
+
+        if view is not None:
+            query_params["view"] = view.value
+
+        return self.api_call(
+            method="GET", path=f"/v1/private/loan/{loan_id}", query_params=query_params
+        )
 
     def update(self, *, loan_id: UUID, loan: Loan) -> ServicingResponse:
         if not is_uuid(loan_id):
             raise ServicingInvalidPathParamError
         return self.api_call(
             method="PUT", path=f"/v1/private/loan/{loan_id}", data=loan.to_dict()
-        )
-
-    def get_balance(self, *, loan_id: UUID) -> ServicingResponse:
-        if not is_uuid(loan_id):
-            raise ServicingInvalidPathParamError
-        return self.api_call(method="GET", path=f"/v1/private/loan/{loan_id}/balance")
-
-    def get_interest(
-        self, *, loan_id: UUID, start_date: str, end_date: str
-    ) -> ServicingResponse:
-        if not is_uuid(loan_id):
-            raise ServicingInvalidPathParamError
-        query_params = dict()
-        query_params["startDate"] = start_date
-        query_params["endDate"] = end_date
-
-        return self.api_call(
-            method="GET",
-            path=f"/v1/private/loan/{loan_id}/interest",
-            query_params=query_params,
         )
 
     def get_invoice(self, *, loan_id: UUID, period_number: int):
@@ -110,16 +100,12 @@ class LoanClient(ResourceClient):
         )
 
     def list_transactions(
-        self,
-        *,
-        loan_id: UUID,
-        transaction_type: Optional[TransactionType] = None,
-        view: ViewType = ViewType.BASIC,
+        self, *, loan_id: UUID, transaction_type: Optional[TransactionType] = None
     ):
         if not is_uuid(loan_id):
             raise ServicingInvalidPathParamError
 
-        query_params = {"view": view.value}
+        query_params = {}
 
         if transaction_type is not None:
             query_params["type"] = transaction_type.value
@@ -137,10 +123,10 @@ class LoanClient(ResourceClient):
         query_params = {}
 
         if end_date is not None:
-            query_params["date"] = format_date(end_date)
+            query_params["end_date"] = format_date(end_date)
 
         return self.api_call(
-            method="POST",
+            method="GET",
             path=f"/v1/private/loan/{loan_id}/tracker",
             query_params=query_params,
         )
@@ -201,7 +187,7 @@ class ServicingClient(BaseClient):
         self.institution = InstitutionClient(client=self)
         self.loan = LoanClient(client=self)
         self.user = UserClient(client=self)
-        self.transactions = TransactionClient(client=self)
+        self.transaction = TransactionClient(client=self)
 
     def status(self) -> ServicingResponse:
         return self.api_call(method="GET", path="/v1/public/status")

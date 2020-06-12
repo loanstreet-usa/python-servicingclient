@@ -6,7 +6,7 @@ class ServicingApiError(ServicingClientError):
     """Error raised when API does not send the expected response."""
 
     def __init__(self, message, response):
-        msg = f"{message}\nThe server responded with: {response}"
+        msg = f"{message}\nThe server responded with: [{response.status}] {response}"
         self.response = response
         super(ServicingClientError, self).__init__(msg)
 
