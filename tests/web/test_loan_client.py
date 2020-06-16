@@ -3,7 +3,7 @@ from unittest.mock import Mock
 from uuid import uuid4
 
 from servicing.web.client import LoanClient
-from servicing.web.classes.enums import ViewType
+from servicing.web.classes.enums import TrackerType, ViewType
 
 
 class LoanClientTests(unittest.TestCase):
@@ -55,3 +55,12 @@ class LoanClientTests(unittest.TestCase):
 
         _, kwargs = self.base_client.api_call.call_args
         self.assertEqual(kwargs["query_params"], {"end_date": "2020-01-01"})
+
+    def test_list_trackers_with_tracker_type(self):
+        loan_id = uuid4()
+
+        self.loan_client.list_trackers(loan_id=loan_id, tracker_type=TrackerType.DAILY_INTEREST_ACCRUAL)
+        self.assertTrue(self.base_client.api_call.called)
+
+        _, kwargs = self.base_client.api_call.call_args
+        self.assertEqual(kwargs["query_params"], {"type": TrackerType.DAILY_INTEREST_ACCRUAL.value})

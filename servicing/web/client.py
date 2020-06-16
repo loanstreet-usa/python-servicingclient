@@ -4,7 +4,7 @@ from typing import Optional, Union
 import abc
 
 from .base_client import BaseClient
-from .classes.enums import BenchmarkName, TransactionType, ViewType
+from .classes.enums import BenchmarkName, TrackerType, TransactionType, ViewType
 from .classes.institution import Institution
 from .classes.loan import Loan
 from .classes.draw import Draw
@@ -118,12 +118,18 @@ class LoanClient(ResourceClient):
 
     @RequireUuid("loan_id")
     def list_trackers(
-        self, *, loan_id: UUID, end_date: Optional[Union[date, str]] = None
+        self,
+        *,
+        loan_id: UUID,
+        end_date: Optional[Union[date, str]] = None,
+        tracker_type: Optional[TrackerType] = None,
     ):
         query_params = {}
 
         if end_date is not None:
             query_params["end_date"] = format_date(end_date)
+        if tracker_type is not None:
+            query_params["type"] = tracker_type.value
 
         return self.api_call(
             method="GET",
