@@ -8,9 +8,11 @@ import random
 from servicing import ServicingClient
 from servicing.web.classes.draw import Draw
 from servicing.web.classes.enums import BenchmarkName, Compounding, DayCount, Frequency, TransactionType
+from servicing.web.classes.forgiveness import Forgiveness
 from servicing.web.classes.fund import Fund
 from servicing.web.classes.institution import Institution
 from servicing.web.classes.loan import Loan, FixedPayment, Periods
+from servicing.web.classes.misc_fee import MiscFee
 from servicing.web.classes.money import Money
 from servicing.web.classes.payment import Payment
 
@@ -120,7 +122,7 @@ class ServicingClientTests(unittest.TestCase):
             time_zone_id="America/New_York",
             periods=periods,
         )
-        
+
         resp = self.client.loan.update(
             loan_id=loan_id,
             loan=updated_loan
@@ -129,6 +131,30 @@ class ServicingClientTests(unittest.TestCase):
         self.assertIsNotNone(resp["loan_id"])
         self.assertEqual(str(loan_id), resp["loan_id"])
         self.assertAlmostEqual(random_rate, resp["annual_rate"])
+
+    def test_charge_misc_fee(self):
+        loan_id = self.register_loan()
+        misc_fee = MiscFee(amount=Money("500"), date="2020-01-01")
+        resp = self.client.loan.charge_misc_fee(loan_id=loan_id, misc_fee=misc_fee).validate()
+        self.assertIsNotNone(resp["loan_id"])
+        self.assertEqual(str(loan_id), resp["loan_id"])
+        self.assertIsNotNone(resp["transaction_id"])
+
+    def test_forgive_principal(self):
+        loan_id = self.register_loan()
+        forgiveness = Forgiveness(amount=Money("10000"), date="2020-01-01")
+        resp = self.client.loan.forgive_principal(loan_id=loan_id, forgiveness=forgiveness).validate()
+        self.assertIsNotNone(resp["loan_id"])
+        self.assertEqual(str(loan_id), resp["loan_id"])
+        self.assertIsNotNone(resp["transaction_id"])
+
+    def test_void_loan(self):
+        loan_id = self.register_loan()
+        self.client.loan.void(loan_id=loan_id).validate()
+        resp = self.client.loan.get(loan_id=loan_id).validate()
+        self.assertIsNotNone(resp["loan_id"])
+        self.assertEqual(str(loan_id), resp["loan_id"])
+        self.assertTrue(resp["is_void"])
 
     def test_get_loan_invoice(self):
         loan_id = self.register_loan()

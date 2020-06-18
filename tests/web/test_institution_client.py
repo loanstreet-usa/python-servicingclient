@@ -19,4 +19,4 @@ class InstitutionClientTests(unittest.TestCase):
 
         _, kwargs = self.base_client.api_call.call_args
         self.assertEqual(kwargs["path"], f"/v1/private/institution/{institution_id}/loan")
-        self.assertEqual(kwargs["query_params"], {"view": ViewType.BASIC.value})
+        self.assertEqual(kwargs["query_params"], {"view": ViewType.BASIC.value, "includeVoided": False})
