@@ -5,10 +5,12 @@ import abc
 
 from .base_client import BaseClient
 from .classes.enums import BenchmarkName, TrackerType, TransactionType, ViewType
+from .classes.forgiveness import Forgiveness
 from .classes.institution import Institution
 from .classes.loan import Loan
 from .classes.draw import Draw
 from .classes.fund import Fund
+from .classes.misc_fee import MiscFee
 from .classes.payment import Payment
 from .classes.user import User
 from .servicing_response import ServicingResponse
@@ -53,14 +55,18 @@ class InstitutionClient(ResourceClient):
         return self.api_call(method="GET", path=f"/v1/private/fund/{fund_id}")
 
     def list_loans(
-        self, *, institution_id: UUID, view: ViewType = ViewType.BASIC
+        self,
+        *,
+        institution_id: UUID,
+        view: ViewType = ViewType.BASIC,
+        include_voided: bool = False,
     ) -> ServicingResponse:
         if not is_uuid(institution_id):
             raise ServicingInvalidPathParamError
         return self.api_call(
             method="GET",
             path=f"/v1/private/institution/{institution_id}/loan",
-            query_params={"view": view.value},
+            query_params={"view": view.value, "includeVoided": include_voided},
         )
 
 
@@ -152,6 +158,29 @@ class LoanClient(ResourceClient):
             path=f"/v1/private/loan/{loan_id}/payment",
             data=payment.to_dict(),
         )
+
+    def charge_misc_fee(self, *, loan_id: UUID, misc_fee: MiscFee):
+        if not is_uuid(loan_id):
+            raise ServicingInvalidPathParamError
+        return self.api_call(
+            method="POST",
+            path=f"/v1/private/loan/{loan_id}/fee",
+            data=misc_fee.to_dict(),
+        )
+
+    def forgive_principal(self, *, loan_id: UUID, forgiveness: Forgiveness):
+        if not is_uuid(loan_id):
+            raise ServicingInvalidPathParamError
+        return self.api_call(
+            method="POST",
+            path=f"/v1/private/loan/{loan_id}/forgiveness",
+            data=forgiveness.to_dict(),
+        )
+
+    def void(self, *, loan_id: UUID) -> ServicingResponse:
+        if not is_uuid(loan_id):
+            raise ServicingInvalidPathParamError
+        return self.api_call(method="POST", path=f"/v1/private/loan/{loan_id}/void",)
 
 
 class TransactionClient(ResourceClient):
